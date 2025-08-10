@@ -28,19 +28,23 @@ Arquitetura por Camadas
 
      3. LangChain
      
-         Fornece a base para recuperação de contexto, integração com ferramentas e bases de dados.
-         Os agentes podem acessar servidores e clientes MCP para buscar contexto e acionar recursos especializados.
+         Fornece a base para recuperação de contexto, integração com 
+         ferramentas e bases de dados.
+         Os agentes podem acessar servidores e clientes MCP para 
+         buscar contexto e acionar recursos especializados.
 
       4. MCP (Model Context Protocol)
       
          Padrão para expor fontes de contexto e ferramentas.
          Acesso a:
                   Banco de dados com metadados de processamento.
-                  Repositório de artigos e pesquisas sobre maceração carbônica, secagem, entre outros.
+                  Repositório de artigos e pesquisas sobre maceração carbônica, 
+                  secagem, entre outros.
 
         💡 Por que MCP?
-               Porque ele é como o “USB-C” entre LLMs e aplicações: padroniza como agentes pedem dados e usam ferramentas, 
-               facilitando a integração com  novas fontes sem reescrever conectores.
+               Porque ele é como o “USB-C” entre LLMs e aplicações: padroniza 
+               como agentes pedem dados e usam ferramentas, facilitando a integração 
+               com  novas fontes sem reescrever conectores.
 
        5. RAG / Vector DB
        
@@ -54,8 +58,9 @@ Arquitetura por Camadas
 
 Resumo do Projeto:
 
-     Transformar fluxos de processamento de café em agentes inteligentes (CrewAI + LangChain + LangGraph),
-     com interface Flask, padrão Model Context Protocol (MCP) e deploy simplificado via Docker.
+     Transformar fluxos de processamento de café em agentes inteligentes 
+     (CrewAI + LangChain + LangGraph),com interface Flask, padrão Model Context Protocol (MCP) 
+     e deploy simplificado via Docker.
 
 Como Rodar Localmente:
 
