@@ -15,7 +15,8 @@ Arquitetura por Camadas
     1. Flask UI / API
     
         - Interface web e API leves para receber requisições.
-        - Pode servir como painel de controle ou ponto de integração com sistemas externos.
+        - Pode servir como painel de controle ou ponto de integração 
+          com sistemas externos.
 
     2. CrewAI — Orquestração de Agentes
     
