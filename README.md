@@ -53,14 +53,14 @@ Arquitetura por Camadas
 
        6. Infraestrutura / Deploy
        
-           Contêineres Docker + docker-compose para empacotar e rodar toda a aplicação.
-           Pronto para execução local ou em nuvem.
+           Contêineres Docker + docker-compose para empacotar 
+           e rodar toda a aplicação. Pronto para execução local ou em nuvem.
 
 Resumo do Projeto:
 
      Transformar fluxos de processamento de café em agentes inteligentes 
-     (CrewAI + LangChain + LangGraph),com interface Flask, padrão Model Context Protocol (MCP) 
-     e deploy simplificado via Docker.
+     (CrewAI + LangChain + LangGraph),com interface Flask, 
+     padrão Model Context Protocol (MCP) e deploy simplificado via Docker.
 
 Como Rodar Localmente:
 
