@@ -1,0 +1,60 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="main-container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <div class="rag-interface">
+        <button id="toggle-rag-button">Falar com o Agente RAG</button>
+        <div id="rag-content" style="display: none;">
+            <p>Faça uma pergunta sobre os processos do café:</p>
+            <textarea id="user-input" rows="3" placeholder="Ex: O que é maceração carbônica?"></textarea>
+            <button id="send-rag-button">Perguntar</button>
+            <div id="rag-response-container">
+                <p id="rag-response"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const toggleButton = document.getElementById('toggle-rag-button');
+        const ragContent = document.getElementById('rag-content');
+        const sendButton = document.getElementById('send-rag-button');
+        const userInput = document.getElementById('user-input');
+        const ragResponse = document.getElementById('rag-response');
+
+        toggleButton.addEventListener('click', () => {
+            ragContent.style.display = ragContent.style.display === 'none' ? 'block' : 'none';
+        });
+
+        sendButton.addEventListener('click', async () => {
+            const query = userInput.value;
+            if (!query) return;
+            ragResponse.textContent = "Buscando resposta...";
+
+            try {
+                const response = await fetch('/rag', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ user_input: query })
+                });
+                const data = await response.json();
+                ragResponse.textContent = data.response;
+            } catch (error) {
+                console.error('Erro:', error);
+                ragResponse.textContent = 'Ocorreu um erro ao processar sua solicitação.';
+            }
+        });
+    </script>
+</body>
+</html>

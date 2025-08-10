@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processamento de Café - Interface RAG</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #8B4513, #D2691E);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .diagram-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+            position: relative;
+            overflow-x: auto;
+        }
+        
+        .process-diagram {
+            width: 100%;
+            min-width: 1200px;
+            height: 800px;
+            position: relative;
+        }
+        
+        .swimlane {
+            position: absolute;
+            border: 2px solid;
+            border-radius: 10px;
+            padding: 10px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        
+        .ps { /* Processo Seco */
+            left: 50px;
+            top: 50px;
+            width: 200px;
+            height: 700px;
+            background: rgba(255, 235, 205, 0.3);
+            border-color: #8B4513;
+            color: #8B4513;
+        }
+        
+        .pu { /* Processo Úmido */
+            left: 280px;
+            top: 50px;
+            width: 200px;
+            height: 700px;
+            background: rgba(173, 216, 230, 0.3);
+            border-color: #4169E1;
+            color: #4169E1;
+        }
+        
+        .giling-basah {
+            left: 510px;
+            top: 50px;
+            width: 200px;
+            height: 700px;
+            background: rgba(144, 238, 144, 0.3);
+            border-color: #228B22;
+            color: #228B22;
+        }
+        
+        .ph { /* Processo Honey */
+            left: 740px;
+            top: 50px;
+            width: 200px;
+            height: 700px;
+            background: rgba(255, 218, 185, 0.3);
+            border-color: #FF8C00;
+            color: #FF8C00;
+        }
+        
+        .process-box {
+            position: absolute;
+            background: white;
+            border: 2px solid;
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .process-box:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+        
+        /* Posicionamento dos boxes baseado no diagrama original */
+        .colheita { top: 80px; left: 400px; width: 80px; height: 40px; border-color: #666; }
+        .classificacao { top: 140px; left: 400px; width: 80px; height: 40px; border-color: #666; }
+        
+        /* Processo Seco */
+        .fermentacao-anaerob { top: 200px; left: 70px; width: 90px; height: 40px; border-color: #8B4513; }
+        .fermentacao-anaerob-carbonica { top: 260px; left: 70px; width: 90px; height: 40px; border-color: #8B4513; }
+        .secagem-ps { top: 600px; left: 70px; width: 90px; height: 40px; border-color: #8B4513; }
+        
+        /* Processo Úmido */
+        .despolpamento { top: 200px; left: 300px; width: 80px; height: 40px; border-color: #4169E1; }
+        .graos-cafe-pergaminho { top: 260px; left: 300px; width: 80px; height: 40px; border-color: #4169E1; }
+        .fermentacao-pu { top: 320px; left: 300px; width: 80px; height: 40px; border-color: #4169E1; }
+        .lavagem-pu { top: 380px; left: 300px; width: 80px; height: 40px; border-color: #4169E1; }
+        .secagem-pu { top: 600px; left: 300px; width: 80px; height: 40px; border-color: #4169E1; }
+        
+        /* Giling Basah */
+        .descascamento-gb { top: 320px; left: 530px; width: 80px; height: 40px; border-color: #228B22; }
+        .secagem-gb { top: 380px; left: 530px; width: 80px; height: 40px; border-color: #228B22; }
+        .graos-cafe-verde-gb { top: 650px; left: 530px; width: 80px; height: 40px; border-color: #228B22; }
+        
+        /* Processo Honey */
+        .despolpamento-ph { top: 200px; left: 760px; width: 80px; height: 40px; border-color: #FF8C00; }
+        .graos-cafe-pergaminho-ph { top: 260px; left: 760px; width: 80px; height: 40px; border-color: #FF8C00; }
+        .fermentacao-microb { top: 600px; left: 760px; width: 80px; height: 40px; border-color: #FF8C00; }
+        .secagem-ph { top: 660px; left: 760px; width: 80px; height: 40px; border-color: #FF8C00; }
+        
+        /* Comuns */
+        .graos-cafe-verde { top: 720px; left: 400px; width: 100px; height: 40px; border-color: #228B22; background: rgba(144, 238, 144, 0.5); }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 2% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 1000px;
+            height: 90vh;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #8B4513, #D2691E);
+            color: white;
+            padding: 20px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .close:hover {
+            color: #ffcccb;
+            transform: scale(1.1);
+        }
+        
+        .modal-body {
+            padding: 20px;
+            height: calc(100% - 80px);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .rag-interface {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .chat-container {
+            flex: 1;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            overflow-y: auto;
+            background: #f9f9f9;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+        
+        .user-message {
+            background: #007bff;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+        
+        .ai-message {
+            background: white;
+            border: 1px solid #ddd;
+            margin-right: auto;
+        }
+        
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .message-input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 14px;
+        }
+        
+        .send-btn {
+            background: linear-gradient(135deg, #8B4513, #D2691E);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .legend {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .legend h3 {
+            color: #8B4513;
+            margin-bottom: 10px;
+        }
+        
+        .legend-item {
+            display: inline-block;
+            margin: 5px 10px 5px 0;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌱 Diagrama Esquemático do Processamento de Grãos de Café</h1>
+            <p>Clique nos processos para acessar informações detalhadas via RAG</p>
+        </div>
+        
+        <div class="diagram-container">
+            <div class="process-diagram">
+                <!-- Raias -->
+                <div class="swimlane ps">PS<br>Processo<br>Seco</div>
+                <div class="swimlane pu">PU<br>Processo<br>Úmido</div>
+                <div class="swimlane giling-basah">Giling<br>Basah</div>
+                <div class="swimlane ph">PH<br>Processo<br>Honey</div>
+                
+                <!-- Processos Comuns -->
+                <div class="process-box colheita" onclick="openRAG('Colheita')">Colheita</div>
+                <div class="process-box classificacao" onclick="openRAG('Classificação')">Classificação</div>
+                
+                <!-- Processo Seco -->
+                <div class="process-box fermentacao-anaerob" onclick="openRAG('Fermentação Anaeróbica')">Fermentação<br>Anaeróbica</div>
+                <div class="process-box fermentacao-anaerob-carbonica" onclick="openRAG('Fermentação Anaeróbica Carbônica')">Fermentação<br>Anaeróbica<br>Carbônica</div>
+                <div class="process-box secagem-ps" onclick="openRAG('Secagem PS')">Secagem</div>
+                
+                <!-- Processo Úmido -->
+                <div class="process-box despolpamento" onclick="openRAG('Despolpamento')">Despolpamento</div>
+                <div class="process-box graos-cafe-pergaminho" onclick="openRAG('Grãos de Café em Pergaminho')">Grãos de café<br>em pergaminho</div>
+                <div class="process-box fermentacao-pu" onclick="openRAG('Fermentação PU')">Fermentação</div>
+                <div class="process-box lavagem-pu" onclick="openRAG('Lavagem')">Lavagem</div>
+                <div class="process-box secagem-pu" onclick="openRAG('Secagem PU')">Secagem</div>
+                
+                <!-- Giling Basah -->
+                <div class="process-box descascamento-gb" onclick="openRAG('Descascamento')">Descascamento</div>
+                <div class="process-box secagem-gb" onclick="openRAG('Secagem GB')">Secagem</div>
+                <div class="process-box graos-cafe-verde-gb" onclick="openRAG('Grãos de Café Verde GB')">Grãos de<br>café verde</div>
+                
+                <!-- Processo Honey -->
+                <div class="process-box despolpamento-ph" onclick="openRAG('Despolpamento PH')">Despolpamento</div>
+                <div class="process-box graos-cafe-pergaminho-ph" onclick="openRAG('Grãos de Café em Pergaminho PH')">Grãos de café<br>em pergaminho</div>
+                <div class="process-box fermentacao-microb" onclick="openRAG('Fermentação Microbiana')">Fermentação<br>microbiana /<br>enzimática</div>
+                <div class="process-box secagem-ph" onclick="openRAG('Secagem PH')">Secagem</div>
+                
+                <!-- Resultado Final -->
+                <div class="process-box graos-cafe-verde" onclick="openRAG('Grãos de Café Verde')">Grãos de Café Verde</div>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <h3>Legenda dos Processos:</h3>
+            <span class="legend-item" style="background: rgba(255, 235, 205, 0.6); color: #8B4513; border: 1px solid #8B4513;">PS: Processo Seco</span>
+            <span class="legend-item" style="background: rgba(173, 216, 230, 0.6); color: #4169E1; border: 1px solid #4169E1;">PU: Processo Úmido</span>
+            <span class="legend-item" style="background: rgba(144, 238, 144, 0.6); color: #228B22; border: 1px solid #228B22;">Giling Basah</span>
+            <span class="legend-item" style="background: rgba(255, 218, 185, 0.6); color: #FF8C00; border: 1px solid #FF8C00;">PH: Processo Honey</span>
+        </div>
+    </div>
+    
+    <!-- Modal RAG -->
+    <div id="ragModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Interface RAG - Processo</h2>
+                <span class="close" onclick="closeRAG()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="rag-interface">
+                    <div id="chatContainer" class="chat-container">
+                        <div class="message ai-message">
+                            Olá! Sou seu assistente especializado em processamento de café. Como posso ajudá-lo com informações sobre este processo?
+                        </div>
+                    </div>
+                    <div class="input-container">
+                        <input type="text" id="messageInput" class="message-input" placeholder="Digite sua pergunta sobre o processo..." onkeypress="handleEnter(event)">
+                        <button class="send-btn" onclick="sendMessage()">Enviar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentProcess = '';
+        
+        const processInfo = {
+            'Colheita': 'A colheita é o primeiro passo do processamento do café, onde os frutos maduros são coletados das plantas.',
+            'Classificação': 'Processo de separação dos grãos por qualidade, tamanho e maturação.',
+            'Fermentação Anaeróbica': 'Processo de fermentação sem presença de oxigênio, criando sabores únicos.',
+            'Fermentação Anaeróbica Carbônica': 'Fermentação em ambiente controlado com CO2, método inovador.',
+            'Despolpamento': 'Remoção da polpa do fruto, mantendo o pergaminho ao redor do grão.',
+            'Grãos de Café em Pergaminho': 'Grãos com a camada de pergaminho ainda presente.',
+            'Fermentação PU': 'Fermentação tradicional do processo úmido em tanques com água.',
+            'Lavagem': 'Remoção dos resíduos de fermentação através de lavagem com água.',
+            'Secagem PS': 'Secagem natural ao sol dos grãos no processo seco.',
+            'Secagem PU': 'Secagem dos grãos pergaminho após lavagem.',
+            'Secagem GB': 'Secagem específica do método Giling Basah.',
+            'Secagem PH': 'Secagem controlada no processo honey.',
+            'Descascamento': 'Remoção do pergaminho dos grãos ainda úmidos.',
+            'Fermentação Microbiana': 'Fermentação controlada por microrganismos específicos.',
+            'Grãos de Café Verde': 'Produto final pronto para torrefação e comercialização.'
+        };
+        
+        function openRAG(processName) {
+            currentProcess = processName;
+            document.getElementById('modalTitle').textContent = `Interface RAG - ${processName}`;
+            document.getElementById('ragModal').style.display = 'block';
+            
+            // Limpar chat anterior
+            const chatContainer = document.getElementById('chatContainer');
+            chatContainer.innerHTML = `
+                <div class="message ai-message">
+                    Olá! Vou ajudá-lo com informações sobre <strong>${processName}</strong>. ${processInfo[processName] || 'Este é um processo importante no beneficiamento do café.'}<br><br>
+                    O que você gostaria de saber especificamente sobre este processo?
+                </div>
+            `;
+            
+            document.getElementById('messageInput').focus();
+        }
+        
+        function closeRAG() {
+            document.getElementById('ragModal').style.display = 'none';
+        }
+        
+        function handleEnter(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message === '') return;
+            
+            const chatContainer = document.getElementById('chatContainer');
+            
+            // Adicionar mensagem do usuário
+            chatContainer.innerHTML += `
+                <div class="message user-message">
+                    ${message}
+                </div>
+            `;
+            
+            // Simular resposta do RAG
+            setTimeout(() => {
+                const response = generateRAGResponse(message, currentProcess);
+                chatContainer.innerHTML += `
+                    <div class="message ai-message">
+                        ${response}
+                    </div>
+                `;
+                
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 1000);
+            
+            input.value = '';
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        function generateRAGResponse(question, process) {
+            const responses = {
+                'Colheita': {
+                    'tempo': 'A colheita do café geralmente ocorre uma vez por ano, entre maio e setembro no Brasil, dependendo da região.',
+                    'método': 'Existem dois métodos principais: colheita seletiva (apenas frutos maduros) e derriça (todos os frutos).',
+                    'qualidade': 'A colheita seletiva produz café de maior qualidade, mas é mais trabalhosa e custosa.',
+                    'default': 'A colheita é fundamental para a qualidade final do café. Frutos colhidos no ponto ideal de maturação resultam em bebidas mais doces e complexas.'
+                },
+                'Fermentação Anaeróbica': {
+                    'tempo': 'O processo de fermentação anaeróbica pode durar de 48 a 120 horas, dependendo da temperatura e método.',
+                    'sabor': 'Este método produz sabores mais intensos, frutados e complexos, com notas que lembram vinho.',
+                    'temperatura': 'A temperatura ideal fica entre 15-25°C para controlar a velocidade da fermentação.',
+                    'default': 'A fermentação anaeróbica é um método inovador que cria perfis de sabor únicos através da ausência de oxigênio.'
+                },
+                'Secagem PS': {
+                    'tempo': 'A secagem no processo seco pode levar de 15 a 30 dias, dependendo das condições climáticas.',
+                    'cuidados': 'É importante revirar os grãos regularmente para evitar fermentação indesejada e garantir secagem uniforme.',
+                    'umidade': 'Os grãos devem atingir umidade entre 10-12% para armazenamento seguro.',
+                    'default': 'A secagem é crucial no processo seco, onde os frutos secam inteiros, concentrando açúcares e criando corpo mais encorpado.'
+                }
+            };
+            
+            const processResponses = responses[process];
+            if (!processResponses) {
+                return `Com base no conhecimento sobre ${process}, este processo é essencial para a qualidade final do café. Você pode fazer perguntas mais específicas sobre tempo, método, temperatura, equipamentos ou impacto no sabor.`;
+            }
+            
+            const lowerQuestion = question.toLowerCase();
+            
+            for (const key in processResponses) {
+                if (lowerQuestion.includes(key)) {
+                    return processResponses[key];
+                }
+            }
+            
+            // Buscar palavras-chave gerais
+            if (lowerQuestion.includes('como') || lowerQuestion.includes('o que')) {
+                return processResponses.default;
+            }
+            
+            return `Sobre ${process}: ${processResponses.default} Para informações mais específicas, pergunte sobre tempo, método, temperatura, equipamentos ou impacto no sabor.`;
+        }
+        
+        // Fechar modal clicando fora
+        window.onclick = function(event) {
+            const modal = document.getElementById('ragModal');
+            if (event.target == modal) {
+                closeRAG();
+            }
+        }
+    </script>
+</body>
+</html>

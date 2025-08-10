@@ -1,0 +1,17 @@
+
+{% extends "base.html" %}
+
+{% block title %}Diagrama de Processamento de Grãos de Café{% endblock %}
+
+{% block content %}
+    <div class="diagram-container">
+        <h1>FIGURA 1: DIAGRAMA ESQUEMÁTICO DO PROCESSAMENTO DE GRÃOS DE CAFÉ</h1>
+        <img src="{{ url_for('static', filename='diagrama.png') }}" alt="Diagrama de Processamento de Café" usemap="#diagrama-map" class="diagram-image">
+        
+        <map name="diagrama-map">
+            {% for route_name, page_title in diagram_blocks.items() %}
+            <area shape="rect" coords="0,0,0,0" href="{{ url_for(route_name) }}" alt="{{ page_title }}">
+            {% endfor %}
+            </map>
+    </div>
+{% endblock %}

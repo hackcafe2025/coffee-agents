@@ -1,0 +1,27 @@
+version: "3.8"
+services:
+  mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python /app/mcp_server_stub.py
+    ports:
+      - "8001:8001"
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  coffee-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: gunicorn -k uvicorn.workers.UvicornWorker app.app:app --bind 0.0.0.0:5000 --workers 1
+    depends_on:
+      - mcp-server
+    ports:
+      - "5000:5000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - MCP_SERVER_URL=http://mcp-server:8001
+      - VECTOR_DB_PATH=/data/faiss.index
+    volumes:
+      - ./app:/app

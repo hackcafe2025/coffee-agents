@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processamento de Café - Diagrama Interativo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .title {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .diagram-container {
+            position: relative;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            padding: 40px;
+            overflow-x: auto;
+            min-height: 800px;
+        }
+
+        .process-box {
+            position: absolute;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            backdrop-filter: blur(10px);
+        }
+
+        .process-box:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            border-color: #3498db;
+        }
+
+        .process-box.clicked {
+            animation: pulse 0.6s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Cores específicas para cada tipo de processo */
+        .ps { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .pu { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+        .ph { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
+        .general { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; }
+        .fermentation { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; }
+        .drying { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #2c3e50; }
+
+        .connection-line {
+            position: absolute;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            height: 3px;
+            border-radius: 2px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .arrow {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 12px solid #2ecc71;
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.95);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .legend h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            position: relative;
+            background: white;
+            margin: 5% auto;
+            padding: 0;
+            width: 90%;
+            max-width: 800px;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            animation: modalSlideIn 0.4s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .close:hover {
+            transform: scale(1.2);
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .rag-interface {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .chat-container {
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            height: 300px;
+            overflow-y: auto;
+            padding: 15px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: auto;
+        }
+
+        .ai-message {
+            background: white;
+            border: 1px solid #dee2e6;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input:focus {
+            border-color: #667eea;
+        }
+
+        .send-btn {
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .suggested-questions {
+            margin-top: 15px;
+        }
+
+        .suggested-questions h4 {
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .suggestion-btn {
+            display: inline-block;
+            padding: 8px 15px;
+            margin: 5px;
+            background: #e9ecef;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s;
+        }
+
+        .suggestion-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">Processamento de Grãos de Café - Sistema Interativo com RAG</h1>
+        
+        <div class="diagram-container">
+            <!-- Processo Seco (PS) -->
+            <div class="process-box ps" style="top: 50px; left: 50px; width: 120px;" data-process="colheita">Colheita</div>
+            <div class="process-box ps" style="top: 120px; left: 50px; width: 140px;" data-process="caracterizacao">Caracterização</div>
+            <div class="process-box ps" style="top: 200px; left: 50px; width: 120px;" data-process="secagem-cafe">Secagem do Café</div>
+            <div class="process-box ps" style="top: 280px; left: 50px; width: 140px;" data-process="descascamento">Descascamento</div>
+            <div class="process-box ps" style="top: 360px; left: 50px; width: 120px;" data-process="graos-cafe-pergaminho">Grãos de café em pergaminho</div>
+            <div class="process-box ps" style="top: 440px; left: 50px; width: 100px;" data-process="secagem">Secagem</div>
+            <div class="process-box ps" style="top: 520px; left: 50px; width: 120px;" data-process="beneficiamento">Beneficiamento</div>
+            <div class="process-box ps" style="top: 600px; left: 50px; width: 100px;" data-process="catacao">Catação</div>
+
+            <!-- Processo Úmido (PU) -->
+            <div class="process-box pu" style="top: 280px; left: 250px; width: 140px;" data-process="despolpamento">Despolpamento</div>
+            <div class="process-box pu" style="top: 360px; left: 250px; width: 120px;" data-process="graos-cafe-pergaminho-servico">Grãos de café em pergaminho servico</div>
+            <div class="process-box pu" style="top: 440px; left: 250px; width: 130px;" data-process="fermentacao">Fermentação</div>
+            <div class="process-box pu" style="top: 520px; left: 250px; width: 100px;" data-process="lavagem">Lavagem</div>
+
+            <!-- Processo Honey (PH) -->
+            <div class="process-box ph" style="top: 280px; left: 450px; width: 160px;" data-process="despolpamento-parcial">Despolpamento Parcial</div>
+            <div class="process-box ph" style="top: 360px; left: 450px; width: 140px;" data-process="fermentacao-espontanea">Fermentação Espontânea</div>
+
+            <!-- Processos de Fermentação -->
+            <div class="process-box fermentation" style="top: 440px; left: 450px; width: 120px;" data-process="fermentacao-acido-lactico">Fermentação Ácido Láctico</div>
+            <div class="process-box fermentation" style="top: 440px; left: 600px; width: 130px;" data-process="fermentacao-anaerobica">Fermentação Anaeróbica</div>
+
+            <!-- Processos Gerais -->
+            <div class="process-box general" style="top: 50px; left: 800px; width: 120px;" data-process="digestao-animal">Digestão Animal</div>
+            <div class="process-box general" style="top: 360px; left: 800px; width: 100px;" data-process="secagem-final">Secagem</div>
+            <div class="process-box drying" style="top: 520px; left: 450px; width: 100px;" data-process="secagem-terreiro">Secagem</div>
+            <div class="process-box general" style="top: 600px; left: 450px; width: 160px;" data-process="graos-cafe-verde">Grãos de café verde</div>
+            <div class="process-box fermentation" style="top: 680px; left: 600px; width: 180px;" data-process="fermentacao-microbiana">Fermentação Microbiana / Enzimática</div>
+
+            <!-- Excreção e Lavagem -->
+            <div class="process-box general" style="top: 120px; left: 800px; width: 100px;" data-process="excrecao">Excreção</div>
+            <div class="process-box general" style="top: 200px; left: 800px; width: 120px;" data-process="lavagem-final">Lavagem</div>
+
+            <!-- Caixa Seca / Giling Basah -->
+            <div class="process-box drying" style="top: 680px; left: 250px; width: 100px;" data-process="caixa-seca">Caixa Seca</div>
+            <div class="process-box drying" style="top: 680px; left: 370px; width: 100px;" data-process="giling-basah">Giling Basah</div>
+
+            <!-- Linhas de conexão (simplificadas) -->
+            <div class="connection-line" style="top: 102px; left: 170px; width: 80px;"></div>
+            <div class="connection-line" style="top: 332px; left: 190px; width: 60px;"></div>
+            <div class="connection-line" style="top: 412px; left: 170px; width: 80px;"></div>
+        </div>
+
+        <div class="legend">
+            <h3>Legenda dos Processos</h3>
+            <div class="legend-item">
+                <div class="legend-color ps"></div>
+                <span>PS: Processo Seco</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color pu"></div>
+                <span>PU: Processo Úmido</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color ph"></div>
+                <span>PH: Processo Honey</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color fermentation"></div>
+                <span>Processos de Fermentação</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color general"></div>
+                <span>Processos Gerais</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Interface RAG -->
+    <div id="ragModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close">&times;</span>
+                <h2 id="modalTitle">Assistente RAG - Processo</h2>
+            </div>
+            <div class="modal-body">
+                <div class="rag-interface">
+                    <div class="chat-container" id="chatContainer">
+                        <div class="message ai-message">
+                            Olá! Sou seu assistente especializado em processamento de café. 
+                            Como posso ajudá-lo com informações sobre este processo específico?
+                        </div>
+                    </div>
+                    <div class="input-container">
+                        <input type="text" class="chat-input" id="chatInput" 
+                               placeholder="Digite sua pergunta sobre o processo...">
+                        <button class="send-btn" onclick="sendMessage()">Enviar</button>
+                    </div>
+                    <div class="suggested-questions">
+                        <h4>Perguntas Sugeridas:</h4>
+                        <div id="suggestedQuestions"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const processData = {
+            'colheita': {
+                title: 'Colheita do Café',
+                questions: [
+                    'Qual o melhor período para colheita?',
+                    'Como identificar o ponto ideal de maturação?',
+                    'Quais métodos de colheita são mais eficientes?'
+                ],
+                responses: {
+                    'Qual o melhor período para colheita?': 'O período ideal de colheita varia conforme a região e altitude. Geralmente ocorre entre maio e setembro no hemisfério sul, quando os frutos atingem coloração cereja (vermelha) ou amarela, dependendo da variedade.',
+                    'Como identificar o ponto ideal de maturação?': 'O ponto ideal é identificado pela coloração uniforme dos frutos, textura firme mas não dura, e facilidade de separação do ramo. O grau Brix (teor de açúcares) deve estar entre 18-25°.',
+                    'Quais métodos de colheita são mais eficientes?': 'A colheita seletiva manual (picking) garante melhor qualidade, enquanto a derriça pode ser mais produtiva. A colheita mecânica é eficiente em terrenos planos e plantios adequados.'
+                }
+            },
+            'caracterizacao': {
+                title: 'Caracterização dos Grãos',
+                questions: [
+                    'Quais parâmetros são avaliados na caracterização?',
+                    'Como é feita a classificação por peneiras?',
+                    'Qual a importância da análise sensorial?'
+                ],
+                responses: {
+                    'Quais parâmetros são avaliados na caracterização?': 'São avaliados: tamanho, formato, densidade, umidade, defeitos visuais, coloração, origem varietal e características sensoriais como aroma, acidez e corpo.',
+                    'Como é feita a classificação por peneiras?': 'Utilizam-se peneiras com diferentes aberturas (12 a 20) para separar grãos por tamanho. Grãos maiores (peneira 17+) geralmente indicam melhor qualidade e uniformidade.',
+                    'Qual a importância da análise sensorial?': 'A análise sensorial identifica notas aromáticas, sabores, acidez, amargor, corpo e finalização, sendo fundamental para determinação da qualidade e valor comercial do café.'
+                }
+            },
+            'descascamento': {
+                title: 'Descascamento',
+                questions: [
+                    'Qual a diferença entre descascamento seco e úmido?',
+                    'Como ajustar o equipamento corretamente?',
+                    'Quais cuidados evitam danos aos grãos?'
+                ],
+                responses: {
+                    'Qual a diferença entre descascamento seco e úmido?': 'No descascamento seco, remove-se apenas a polpa seca. No úmido, o processo ocorre com grãos frescos, removendo polpa e mucilagem através de equipamentos específicos.',
+                    'Como ajustar o equipamento corretamente?': 'O ajuste deve considerar o tamanho dos grãos, regulando a abertura entre os discos para evitar quebras. Velocidade adequada e manutenção regular são essenciais.',
+                    'Quais cuidados evitam danos aos grãos?': 'Manter equipamentos calibrados, controlar velocidade de processamento, evitar sobrecarregamento e realizar limpeza regular para prevenir contaminações.'
+                }
+            },
+            'fermentacao': {
+                title: 'Fermentação',
+                questions: [
+                    'Qual a duração ideal da fermentação?',
+                    'Como controlar a temperatura durante o processo?',
+                    'Quais microrganismos atuam na fermentação?'
+                ],
+                responses: {
+                    'Qual a duração ideal da fermentação?': 'A fermentação tradicional dura 12-48 horas, dependendo da temperatura ambiente. Temperaturas mais altas (25-30°C) aceleram o processo, enquanto temperaturas baixas o retardam.',
+                    'Como controlar a temperatura durante o processo?': 'Use tanques com isolamento térmico, monitore com termômetros, e ajuste o ambiente. Temperaturas ideais ficam entre 20-25°C para fermentação controlada.',
+                    'Quais microrganismos atuam na fermentação?': 'Principalmente leveduras (Saccharomyces, Candida) e bactérias lácticas. Estes convertem açúcares em álcool, ácidos orgânicos e compostos aromáticos que influenciam o sabor final.'
+                }
+            },
+            'secagem': {
+                title: 'Secagem do Café',
+                questions: [
+                    'Qual a umidade ideal após a secagem?',
+                    'Diferenças entre secagem ao sol e mecânica?',
+                    'Como evitar defeitos durante a secagem?'
+                ],
+                responses: {
+                    'Qual a umidade ideal após a secagem?': 'A umidade final deve ficar entre 11-12% para armazenamento seguro. Acima disso, há risco de fungos e deterioração. Abaixo, pode ocorrer quebra excessiva dos grãos.',
+                    'Diferenças entre secagem ao sol e mecânica?': 'Secagem ao sol: mais lenta (8-15 dias), menor custo, depende do clima. Secagem mecânica: mais rápida (24-48h), maior controle, independe do clima, mas consome energia.',
+                    'Como evitar defeitos durante a secagem?': 'Revolver periodicamente os grãos, controlar espessura da camada, proteger da chuva, secar uniformemente e monitorar temperatura para evitar superaquecimento.'
+                }
+            },
+            'despolpamento': {
+                title: 'Despolpamento',
+                questions: [
+                    'Quando realizar o despolpamento?',
+                    'Qual equipamento é mais adequado?',
+                    'Como recuperar a polpa removida?'
+                ],
+                responses: {
+                    'Quando realizar o despolpamento?': 'Deve ser feito imediatamente após a colheita (máximo 6-8 horas) para evitar fermentação indesejada e manter a qualidade dos grãos.',
+                    'Qual equipamento é mais adequado?': 'Despolpadoras de disco são mais comuns para pequenos volumes. Para maior escala, use despolpadoras cilíndricas que oferecem maior eficiência e menor dano aos grãos.',
+                    'Como recuperar a polpa removida?': 'A polpa pode ser compostada para adubo orgânico, usada na alimentação animal (após tratamento) ou para produção de biogás, agregando valor e sustentabilidade ao processo.'
+                }
+            }
+        };
+
+        let currentProcess = '';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Adicionar event listeners para todas as caixas de processo
+            const processBoxes = document.querySelectorAll('.process-box');
+            processBoxes.forEach(box => {
+                box.addEventListener('click', function() {
+                    this.classList.add('clicked');
+                    setTimeout(() => this.classList.remove('clicked'), 600);
+                    openRAGInterface(this.getAttribute('data-process'));
+                });
+            });
+
+            // Event listeners para o modal
+            const modal = document.getElementById('ragModal');
+            const closeBtn = document.getElementsByClassName('close')[0];
+
+            closeBtn.onclick = function() {
+                modal.style.display = 'none';
+            }
+
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            }
+
+            // Event listener para Enter no input
+            document.getElementById('chatInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        });
+
+        function openRAGInterface(processKey) {
+            currentProcess = processKey;
+            const process = processData[processKey];
+            
+            if (!process) {
+                alert('Informações não disponíveis para este processo.');
+                return;
+            }
+
+            document.getElementById('modalTitle').textContent = `Assistente RAG - ${process.title}`;
+            
+            // Limpar chat anterior
+            const chatContainer = document.getElementById('chatContainer');
+            chatContainer.innerHTML = `
+                <div class="message ai-message">
+                    Olá! Sou seu assistente especializado em <strong>${process.title}</strong>. 
+                    Como posso ajudá-lo com informações sobre este processo específico?
+                </div>
+            `;
+
+            // Adicionar perguntas sugeridas
+            const suggestedQuestionsDiv = document.getElementById('suggestedQuestions');
+            suggestedQuestionsDiv.innerHTML = '';
+            
+            process.questions.forEach(question => {
+                const btn = document.createElement('button');
+                btn.className = 'suggestion-btn';
+                btn.textContent = question;
+                btn.onclick = () => askSuggestedQuestion(question);
+                suggestedQuestionsDiv.appendChild(btn);
+            });
+
+            document.getElementById('ragModal').style.display = 'block';
+            document.getElementById('chatInput').focus();
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (message === '') return;
+
+            addMessageToChat(message, 'user');
+            input.value = '';
+
+            // Simular resposta do RAG
+            setTimeout(() => {
+                const response = generateRAGResponse(message, currentProcess);
+                addMessageToChat(response, 'ai');
+            }, 1000);
+        }
+
+        function askSuggestedQuestion(question) {
+            addMessageToChat(question, 'user');
+            
+            setTimeout(() => {
+                const process = processData[currentProcess];
+                const response = process.responses[question] || generateRAGResponse(question, currentProcess);
+                addMessageToChat(response, 'ai');
+            }, 1000);
+        }
+
+        function addMessageToChat(message, sender) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            messageDiv.textContent = message;
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function generateRAGResponse(question, processKey) {
+            const process = processData[processKey];
+            
+            // Resposta específica se disponível
+            if (process && process.responses[question]) {
+                return process.responses[question];
+            }
+
+            // Respostas genéricas baseadas em palavras-chave
+            const lowerQuestion = question.toLowerCase();
+            
+            if (lowerQuestion.includes('temperatura')) {
+                return 'A temperatura é um fator crítico neste processo. Para informações específicas sobre controle térmico, recomendo consultar nossa base de conhecimento técnico ou um especialista em processamento de café.';
+            }
+            
+            if (lowerQuestion.includes('tempo') || lowerQuestion.includes('duração')) {
+                return 'O tempo de processamento varia conforme diversos fatores como temperatura ambiente, umidade, variedade do café e equipamentos utilizados. Posso fornecer mais detalhes específicos se você especificar suas condições.';
+            }
+            
+            if (lowerQuestion.includes('qualidade') || lowerQuestion.includes('defeito')) {
+                return 'A qualidade do produto final depende do controle rigoroso de cada etapa. Fatores como uniformidade, controle ambiental e timing são fundamentais para evitar defeitos.';
+            }
+
+            if (lowerQuestion.includes('equipamento') || lowerQuestion.includes('máquina')) {
+                return 'A escolha do equipamento adequado depende da escala de produção, orçamento e especificidades do processo. Posso ajudar com recomendações mais específicas se você fornecer mais detalhes.';
+            }
+
+            return `Esta é uma excelente pergunta sobre ${process ? process.title : 'processamento de café'}. Baseado no meu conhecimento especializado, recomendo que consideremos os aspectos técnicos específicos do seu contexto de produção. Poderia fornecer mais detalhes sobre sua situação particular?`;
+        }
+    </script>
+</body>
+</html>
