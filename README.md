@@ -59,8 +59,8 @@ Arquitetura por Camadas
 Resumo do Projeto:
 
      Transformar fluxos de processamento de café em agentes inteligentes 
-     (CrewAI + LangChain + LangGraph),com interface Flask, 
-     padrão Model Context Protocol (MCP) e deploy simplificado via Docker.
+     (CrewAI + LangChain + LangGraph),com interface Flask, padrão Model Context Protocol (MCP)
+     e deploy simplificado via Docker.
 
 Como Rodar Localmente:
 
