@@ -6,7 +6,8 @@ Objetivo: Criar agentes especializados para diferentes etapas e processos da caf
              * Propor workflows de processamento.
              * Executar ações como persistir dados, recuperar documentos, chamar ferramentas de análise e muito mais.
                  
-O sistema foi pensado para unir IA colaborativa, recuperação inteligente de informações e execução automatizada de tarefas, criando uma base sólida para apoiar produtores, pesquisadores e técnicos da cadeia do café.
+O sistema foi pensado para unir IA colaborativa, recuperação inteligente de informações e execução automatizada de tarefas, 
+criando uma base sólida para apoiar produtores, pesquisadores e técnicos da cadeia do café.
 
 Arquitetura por Camadas
 
